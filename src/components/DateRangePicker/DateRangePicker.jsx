@@ -2,72 +2,153 @@ import { useState } from 'react'
 import styles from './DateRangePicker.module.scss'
 import DayPickerButton from './DayPickerButton'
 import { useEffect } from 'react'
+import { useCallback } from 'react'
+import useEffectOnChange from '../../hooks/useEffectOnChange.hook'
 
 function DateRangePicker() {
   const [todayTimestamp] = useState(() => {
     return Date.now()
   })
-  const [selectedYear] = useState(() => {
-    const date = new Date(todayTimestamp)
-    return date.getFullYear()
+  const [currentCalendar] = useState(() => {
+    const todayDateObj = new Date(todayTimestamp)
+    return {
+      year: todayDateObj.getFullYear(),
+      month: todayDateObj.getMonth() + 1
+    }
   })
-  const [selectedMonthIndex] = useState(() => {
-    const date = new Date(todayTimestamp)
-    return date.getMonth()
-  })
+  const [prevCalendar, setPrevCalendar] = useState(() =>
+    getPrevCalendar(currentCalendar.year, currentCalendar.month)
+  )
+  const [nextCalendar, setNextCalendar] = useState(() =>
+    getNextCalendar(currentCalendar.year, currentCalendar.month)
+  )
   const [headerTitle, setHeaderTitle] = useState('')
-  const [calendar, setCalendar] = useState([])
+  const [calendarItems, setCalendarItems] = useState([])
+
+  const generateCalendar = useCallback(
+    (year, month) => {
+      const calendar = []
+      const selectedMonthIndex = month - 1
+      const lastDateObj = new Date(year, selectedMonthIndex + 1, 0)
+      const lastDate = lastDateObj.getDate()
+      const lastDatePrevMonth = new Date(
+        year,
+        selectedMonthIndex - 1,
+        0
+      ).getDate()
+      const firstWeekdayIndex = new Date(year, selectedMonthIndex, 1).getDay()
+      const lastWeekdayIndex = lastDateObj.getDay()
+
+      // populate previous month days
+      for (let i = 0; i < firstWeekdayIndex; i++) {
+        const date = lastDatePrevMonth - (firstWeekdayIndex - 1 - i)
+        const dateObj = new Date(
+          prevCalendar.year,
+          prevCalendar.month - 1,
+          date
+        )
+
+        calendar.push({
+          date,
+          transparent: true,
+          dateObj,
+          today: isToday(dateObj)
+        })
+      }
+
+      // current month dates
+      for (let i = 1; i <= lastDate; i++) {
+        const dateObj = new Date(
+          currentCalendar.year,
+          currentCalendar.month - 1,
+          i
+        )
+
+        calendar.push({
+          date: i,
+          transparent: false,
+          dateObj,
+          today: isToday(dateObj)
+        })
+      }
+
+      // next month dates
+      for (let i = 1; i < 7 - lastWeekdayIndex; i++) {
+        const dateObj = new Date(nextCalendar.year, nextCalendar.month - 1, i)
+        calendar.push({
+          date: i,
+          transparent: true,
+          dateObj,
+          isToday: isToday(dateObj)
+        })
+      }
+
+      return calendar
+    },
+    [currentCalendar, prevCalendar, nextCalendar]
+  )
 
   useEffect(() => {
-    setHeaderTitle(`${selectedYear}年 ${selectedMonthIndex + 1}月`)
-  }, [selectedMonthIndex, selectedYear])
+    setHeaderTitle(`${currentCalendar.year}年 ${currentCalendar.month}月`)
+  }, [currentCalendar])
+
+  useEffectOnChange(() => {
+    const { year, month } = currentCalendar
+    setPrevCalendar(getPrevCalendar(year, month))
+    setNextCalendar(getNextCalendar(year, month))
+  }, [currentCalendar])
 
   useEffect(() => {
-    const currentCalendar = generateCalendar(selectedYear, selectedMonthIndex)
-    setCalendar(currentCalendar)
-  }, [selectedMonthIndex, selectedYear])
+    const items = generateCalendar(currentCalendar.year, currentCalendar.month)
+    setCalendarItems(items)
+  }, [currentCalendar])
 
-  function generateCalendar(selectedYear, selectedMonthIndex) {
-    const calendar = []
-    const lastDateObj = new Date(selectedYear, selectedMonthIndex + 1, 0)
-    const lastDate = lastDateObj.getDate()
-    const lastDatePrevMonth = new Date(
-      selectedYear,
-      selectedMonthIndex - 1,
-      0
-    ).getDate()
-    const firstWeekdayIndex = new Date(
-      selectedYear,
-      selectedMonthIndex,
-      1
-    ).getDay()
-    const lastWeekdayIndex = lastDateObj.getDay()
-
-    // populate previous month days
-    for (let i = 0; i < firstWeekdayIndex; i++) {
-      const date = lastDatePrevMonth - (firstWeekdayIndex - 1 - i)
-      // TODO store Date obj here
-      calendar.push({ date, transparent: true })
+  function getPrevCalendar(currentYear, currentMonth) {
+    if (currentMonth === 0) {
+      return {
+        year: currentYear - 1,
+        month: 12
+      }
     }
 
-    // current month dates
-    for (let i = 1; i <= lastDate; i++) {
-      // TODO store Date obj here
-      calendar.push({ date: i, transparent: false })
+    return {
+      year: currentYear,
+      month: currentMonth - 1
     }
-
-    // next month dates
-    for (let i = 1; i < 7 - lastWeekdayIndex; i++) {
-      // TODO store Date obj here
-      calendar.push({ date: i, transparent: true })
-    }
-
-    return calendar
   }
 
-  const pickerItems = calendar.map((item, index) => {
+  function getNextCalendar(currentYear, currentMonth) {
+    if (currentMonth === 12) {
+      return {
+        year: currentYear + 1,
+        month: 1
+      }
+    }
+
+    return {
+      year: currentYear,
+      month: currentMonth + 1
+    }
+  }
+
+  function isToday(dateObj) {
+    const nextDay = new Date(
+      dateObj.getFullYear(),
+      dateObj.getMonth(),
+      dateObj.getDate() + 1
+    )
     return (
-      <DayPickerButton key={item.day + index} transparent={item.transparent}>
+      dateObj.valueOf() <= todayTimestamp && todayTimestamp < nextDay.valueOf()
+    )
+  }
+
+  const dayPickers = calendarItems.map((item, index) => {
+    return (
+      <DayPickerButton
+        key={item.date + index}
+        transparent={item.transparent}
+        today={item.today}
+      >
         {item.date}日
       </DayPickerButton>
     )
@@ -82,7 +163,7 @@ function DateRangePicker() {
       </div>
 
       {/* Most left is sunday */}
-      <div className={styles['day-picker']}>{pickerItems}</div>
+      <div className={styles['day-picker']}>{dayPickers}</div>
     </div>
   )
 }
