@@ -1,0 +1,28 @@
+.btn-day-picker {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 36px;
+  background-color: #fff;
+
+  &:hover {
+    background-color: #e6e6e6;
+  }
+
+  &--today {
+    background-color: #ffff76;
+  }
+
+  &--active {
+    background-color: #006edc;
+    color: #fff;
+
+    &:hover {
+      color: black;
+    }
+  }
+
+  &--transparent {
+    color: #757575;
+  }
+}

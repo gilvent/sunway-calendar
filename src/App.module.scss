@@ -3,6 +3,7 @@
   display: flex;
   width: 100%;
   justify-content: center;
+  flex-direction: column;
 }
 
 .header {
@@ -12,4 +13,9 @@
   justify-content: center;
   display: flex;
   flex-direction: column;
+}
+
+.body {
+  display: flex;
+  place-content: center;
 }

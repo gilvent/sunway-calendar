@@ -1,4 +1,5 @@
 import styles from './App.module.scss'
+import DateRangePicker from './components/DateRangePicker'
 
 function App() {
   return (
@@ -7,7 +8,9 @@ function App() {
         <div>2024年 7月 24號 - 2024年 7月 30號 </div>
         <div>（8 天）</div>
       </div>
-      <div className={styles.body}></div>
+      <div className={styles.body}>
+        <DateRangePicker></DateRangePicker>
+      </div>
     </div>
   )
 }

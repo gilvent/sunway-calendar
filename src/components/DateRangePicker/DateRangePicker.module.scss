@@ -1,0 +1,42 @@
+.date-range-picker {
+  display: flex;
+  flex-direction: column;
+  width: 350px;
+  height: 240px;
+  font-size: 16px;
+}
+
+.header {
+  display: grid;
+  grid-template-columns: 44px 1fr 44px;
+  justify-content: space-between;
+  height: 44px;
+  margin-bottom: 16px;
+
+  .btn-prev-month,
+  .btn-next-month {
+    width: 44px;
+    height: 44px;
+    background-color: #fff;
+    transition: background-color 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover {
+      background-color: #e6e6e6;
+    }
+  }
+
+  .selected-month {
+    flex: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+}
+
+.day-picker {
+  display: grid;
+  grid-template-columns: repeat(7, 50px);
+}
