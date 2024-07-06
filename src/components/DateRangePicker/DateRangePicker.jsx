@@ -4,12 +4,10 @@ import DayPickerButton from './DayPickerButton'
 import { useEffect } from 'react'
 import useCalendar from './useCalendar.hook'
 
-function DateRangePicker() {
+function DateRangePicker({ startDate, endDate, onChange }) {
   const [headerTitle, setHeaderTitle] = useState('')
   const { currentCalendar, calendarItems, goToNextMonth, goToPrevMonth } =
     useCalendar()
-  const [startDate, setStartDate] = useState(null)
-  const [endDate, setEndDate] = useState(null)
 
   useEffect(() => {
     setHeaderTitle(`${currentCalendar.year}年 ${currentCalendar.month}月`)
@@ -17,12 +15,17 @@ function DateRangePicker() {
 
   function handleClickPickerButton(dateObj) {
     if (!startDate || dateObj.valueOf() < startDate.valueOf() || endDate) {
-      setStartDate(dateObj)
-      setEndDate(null)
+      onChange({
+        startDate: dateObj,
+        endDate: null
+      })
       return
     }
 
-    setEndDate(dateObj)
+    onChange({
+      startDate,
+      endDate: dateObj
+    })
   }
 
   function isActive(dateObj) {
@@ -67,7 +70,7 @@ function DateRangePicker() {
         </button>
       </div>
 
-      {/* Most left is sunday */}
+      {/* Most left is Sunday */}
       <div className={styles['day-picker']}>{dayPickers}</div>
     </div>
   )
