@@ -23,6 +23,8 @@ function DateRangePicker() {
   )
   const [headerTitle, setHeaderTitle] = useState('')
   const [calendarItems, setCalendarItems] = useState([])
+  const [startDate, setStartDate] = useState(null)
+  const [endDate, setEndDate] = useState(null)
 
   const generateCalendar = useCallback(() => {
     const calendar = []
@@ -51,10 +53,8 @@ function DateRangePicker() {
       const dateObj = new Date(prevCalendar.year, prevCalendar.month - 1, date)
 
       calendar.push({
-        date,
         transparent: true,
-        dateObj,
-        today: isToday(dateObj)
+        dateObj
       })
     }
 
@@ -67,10 +67,8 @@ function DateRangePicker() {
       )
 
       calendar.push({
-        date: i,
         transparent: false,
-        dateObj,
-        today: isToday(dateObj)
+        dateObj
       })
     }
 
@@ -78,10 +76,8 @@ function DateRangePicker() {
     for (let i = 1; i < 7 - lastWeekdayIndex; i++) {
       const dateObj = new Date(nextCalendar.year, nextCalendar.month - 1, i)
       calendar.push({
-        date: i,
         transparent: true,
-        dateObj,
-        today: isToday(dateObj)
+        dateObj
       })
     }
 
@@ -93,7 +89,6 @@ function DateRangePicker() {
   }, [currentCalendar])
 
   useEffect(() => {
-    console.log('generate')
     const items = generateCalendar()
     setCalendarItems(items)
   }, [generateCalendar])
@@ -150,15 +145,42 @@ function DateRangePicker() {
     setNextCalendar(getNextCalendar(nextCalendar.year, nextCalendar.month))
   }
 
+  function handleClickPickerButton(dateObj) {
+    if (!startDate || dateObj.valueOf() < startDate.valueOf() || endDate) {
+      setStartDate(dateObj)
+      setEndDate(null)
+      return
+    }
+
+    setEndDate(dateObj)
+  }
+
+  function isActive(dateObj) {
+    if (!startDate) return false
+    const timestamp = dateObj.valueOf()
+
+    if (!endDate) {
+      return startDate.valueOf() === timestamp
+    }
+
+    return startDate.valueOf() <= timestamp && timestamp <= endDate.valueOf()
+  }
+
   const dayPickers = calendarItems.map((item, index) => {
-    const key = `${item.dateObj.getMonth()}-${item.date}-${index}`
+    const date = item.dateObj.getDate()
+    const key = `${item.dateObj.getMonth()}-${date}-${index}`
+
     return (
       <DayPickerButton
         key={key}
         transparent={item.transparent}
-        today={item.today}
+        today={isToday(item.dateObj)}
+        active={isActive(item.dateObj)}
+        onClick={() => {
+          handleClickPickerButton(item.dateObj)
+        }}
       >
-        {item.date}日
+        {date}日
       </DayPickerButton>
     )
   })

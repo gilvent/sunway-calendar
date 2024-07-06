@@ -5,7 +5,7 @@
   height: 36px;
   background-color: #fff;
 
-  &:hover {
+  &:not(&--active):hover {
     background-color: #e6e6e6;
   }
 
@@ -18,7 +18,7 @@
     color: #fff;
 
     &:hover {
-      color: black;
+      opacity: 0.8;
     }
   }
 

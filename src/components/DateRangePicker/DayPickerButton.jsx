@@ -1,7 +1,7 @@
 import classNames from 'classnames'
 import styles from './DayPickerButton.module.scss'
 
-function DayPickerButton({ children, active, today, transparent }) {
+function DayPickerButton({ children, active, today, transparent, onClick }) {
   const buttonClass = classNames(
     styles['btn-day-picker'],
     getSpecialColorClass()
@@ -15,7 +15,11 @@ function DayPickerButton({ children, active, today, transparent }) {
     return null
   }
 
-  return <button className={buttonClass}>{children}</button>
+  return (
+    <button className={buttonClass} onClick={onClick}>
+      {children}
+    </button>
+  )
 }
 
 export default DayPickerButton
