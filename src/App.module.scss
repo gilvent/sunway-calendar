@@ -1,0 +1,15 @@
+.app {
+  font-size: 14px;
+  display: flex;
+  width: 100%;
+  justify-content: center;
+}
+
+.header {
+  padding: 16px;
+  place-items: center;
+  font-size: 16px;
+  justify-content: center;
+  display: flex;
+  flex-direction: column;
+}
