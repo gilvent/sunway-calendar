@@ -35,7 +35,7 @@ function DateRangePicker() {
     const lastDate = lastDateObj.getDate()
     const lastDatePrevMonth = new Date(
       currentCalendar.year,
-      selectedMonthIndex - 1,
+      selectedMonthIndex,
       0
     ).getDate()
     const firstWeekdayIndex = new Date(
