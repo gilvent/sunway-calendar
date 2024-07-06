@@ -3,13 +3,12 @@ import styles from './DateRangePicker.module.scss'
 import DayPickerButton from './DayPickerButton'
 import { useEffect } from 'react'
 import { useCallback } from 'react'
-import useEffectOnChange from '../../hooks/useEffectOnChange.hook'
 
 function DateRangePicker() {
   const [todayTimestamp] = useState(() => {
     return Date.now()
   })
-  const [currentCalendar] = useState(() => {
+  const [currentCalendar, setCurrentCalendar] = useState(() => {
     const todayDateObj = new Date(todayTimestamp)
     return {
       year: todayDateObj.getFullYear(),
@@ -25,83 +24,79 @@ function DateRangePicker() {
   const [headerTitle, setHeaderTitle] = useState('')
   const [calendarItems, setCalendarItems] = useState([])
 
-  const generateCalendar = useCallback(
-    (year, month) => {
-      const calendar = []
-      const selectedMonthIndex = month - 1
-      const lastDateObj = new Date(year, selectedMonthIndex + 1, 0)
-      const lastDate = lastDateObj.getDate()
-      const lastDatePrevMonth = new Date(
-        year,
-        selectedMonthIndex - 1,
-        0
-      ).getDate()
-      const firstWeekdayIndex = new Date(year, selectedMonthIndex, 1).getDay()
-      const lastWeekdayIndex = lastDateObj.getDay()
+  const generateCalendar = useCallback(() => {
+    const calendar = []
+    const selectedMonthIndex = currentCalendar.month - 1
+    const lastDateObj = new Date(
+      currentCalendar.year,
+      selectedMonthIndex + 1,
+      0
+    )
+    const lastDate = lastDateObj.getDate()
+    const lastDatePrevMonth = new Date(
+      currentCalendar.year,
+      selectedMonthIndex - 1,
+      0
+    ).getDate()
+    const firstWeekdayIndex = new Date(
+      currentCalendar.year,
+      selectedMonthIndex,
+      1
+    ).getDay()
+    const lastWeekdayIndex = lastDateObj.getDay()
 
-      // populate previous month days
-      for (let i = 0; i < firstWeekdayIndex; i++) {
-        const date = lastDatePrevMonth - (firstWeekdayIndex - 1 - i)
-        const dateObj = new Date(
-          prevCalendar.year,
-          prevCalendar.month - 1,
-          date
-        )
+    // populate previous month days
+    for (let i = 0; i < firstWeekdayIndex; i++) {
+      const date = lastDatePrevMonth - (firstWeekdayIndex - 1 - i)
+      const dateObj = new Date(prevCalendar.year, prevCalendar.month - 1, date)
 
-        calendar.push({
-          date,
-          transparent: true,
-          dateObj,
-          today: isToday(dateObj)
-        })
-      }
+      calendar.push({
+        date,
+        transparent: true,
+        dateObj,
+        today: isToday(dateObj)
+      })
+    }
 
-      // current month dates
-      for (let i = 1; i <= lastDate; i++) {
-        const dateObj = new Date(
-          currentCalendar.year,
-          currentCalendar.month - 1,
-          i
-        )
+    // current month dates
+    for (let i = 1; i <= lastDate; i++) {
+      const dateObj = new Date(
+        currentCalendar.year,
+        currentCalendar.month - 1,
+        i
+      )
 
-        calendar.push({
-          date: i,
-          transparent: false,
-          dateObj,
-          today: isToday(dateObj)
-        })
-      }
+      calendar.push({
+        date: i,
+        transparent: false,
+        dateObj,
+        today: isToday(dateObj)
+      })
+    }
 
-      // next month dates
-      for (let i = 1; i < 7 - lastWeekdayIndex; i++) {
-        const dateObj = new Date(nextCalendar.year, nextCalendar.month - 1, i)
-        calendar.push({
-          date: i,
-          transparent: true,
-          dateObj,
-          isToday: isToday(dateObj)
-        })
-      }
+    // next month dates
+    for (let i = 1; i < 7 - lastWeekdayIndex; i++) {
+      const dateObj = new Date(nextCalendar.year, nextCalendar.month - 1, i)
+      calendar.push({
+        date: i,
+        transparent: true,
+        dateObj,
+        today: isToday(dateObj)
+      })
+    }
 
-      return calendar
-    },
-    [currentCalendar, prevCalendar, nextCalendar]
-  )
+    return calendar
+  }, [currentCalendar, prevCalendar, nextCalendar])
 
   useEffect(() => {
     setHeaderTitle(`${currentCalendar.year}年 ${currentCalendar.month}月`)
   }, [currentCalendar])
 
-  useEffectOnChange(() => {
-    const { year, month } = currentCalendar
-    setPrevCalendar(getPrevCalendar(year, month))
-    setNextCalendar(getNextCalendar(year, month))
-  }, [currentCalendar])
-
   useEffect(() => {
-    const items = generateCalendar(currentCalendar.year, currentCalendar.month)
+    console.log('generate')
+    const items = generateCalendar()
     setCalendarItems(items)
-  }, [currentCalendar])
+  }, [generateCalendar])
 
   function getPrevCalendar(currentYear, currentMonth) {
     if (currentMonth === 0) {
@@ -137,15 +132,29 @@ function DateRangePicker() {
       dateObj.getMonth(),
       dateObj.getDate() + 1
     )
+
     return (
       dateObj.valueOf() <= todayTimestamp && todayTimestamp < nextDay.valueOf()
     )
   }
 
+  function goToPrevMonth() {
+    setNextCalendar(currentCalendar)
+    setCurrentCalendar(prevCalendar)
+    setPrevCalendar(getPrevCalendar(prevCalendar.year, prevCalendar.month))
+  }
+
+  function goToNextMonth() {
+    setPrevCalendar(currentCalendar)
+    setCurrentCalendar(nextCalendar)
+    setNextCalendar(getNextCalendar(nextCalendar.year, nextCalendar.month))
+  }
+
   const dayPickers = calendarItems.map((item, index) => {
+    const key = `${item.dateObj.getMonth()}-${item.date}-${index}`
     return (
       <DayPickerButton
-        key={item.date + index}
+        key={key}
         transparent={item.transparent}
         today={item.today}
       >
@@ -157,9 +166,13 @@ function DateRangePicker() {
   return (
     <div className={styles['date-range-picker']}>
       <div className={styles.header}>
-        <button className={styles['btn-prev-month']}>&#60;</button>
+        <button className={styles['btn-prev-month']} onClick={goToPrevMonth}>
+          &#60;
+        </button>
         <div className={styles['selected-month']}>{headerTitle}</div>
-        <button className={styles['btn-next-month']}>&#62;</button>
+        <button className={styles['btn-next-month']} onClick={goToNextMonth}>
+          &#62;
+        </button>
       </div>
 
       {/* Most left is sunday */}
